@@ -25,6 +25,7 @@ async function getProducts(page: number, limit: number): Promise<{ products: Pro
                 status,
                 featured: index % 3 === 0, // Just a dummy logic for featured
                 category: mockProduct.category || "General",
+                categoryId: item.categoryIds || [], // Include categoryIds from API (note: plural)
                 imageUrl: item.imageUrl || mockProduct.image,
                 description: item.shortDescription || mockProduct.description,
                 rating: mockProduct.rating,

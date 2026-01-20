@@ -103,10 +103,6 @@ export default function ContactUsList({ initialContactUs, pagination }: { initia
                         <option value="archived">Archived</option>
                     </select>
                 </div>
-
-                <div className="flex items-center gap-3">
-                    <Button onClick={handleAdd} icon={<Plus size={16} />}>Add Contact</Button>
-                </div>
             </div>
 
             {/* Table */}

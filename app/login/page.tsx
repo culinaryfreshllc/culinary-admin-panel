@@ -25,7 +25,13 @@ export default function LoginPage() {
 
         try {
             const response = await api.post('/auth/login', formData);
-            const { token } = response.data;
+
+            // Extract token - handle multiple possible response structures
+            const token = response.data?.token || response.data?.data?.token || response.data?.accessToken;
+
+            if (!token) {
+                throw new Error("No token received from server");
+            }
 
             setAuthToken(token);
             // Also set header immediately for current instance if needed, 
@@ -36,7 +42,7 @@ export default function LoginPage() {
             router.push('/');
         } catch (error: any) {
             console.error("Login failed:", error);
-            setNotification(error.response?.data?.message || "Login failed. Please check your credentials.");
+            setNotification(error.response?.data?.message || error.message || "Login failed. Please check your credentials.");
         } finally {
             setLoading(false);
         }

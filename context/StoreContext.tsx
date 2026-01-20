@@ -15,6 +15,7 @@ export interface Product {
     status: ProductStatus;
     featured: boolean;
     category: string;
+    categoryId?: string[]; // Array of category IDs for multi-select
     imageUrl?: string;
     rating?: number;
     reviews?: number;

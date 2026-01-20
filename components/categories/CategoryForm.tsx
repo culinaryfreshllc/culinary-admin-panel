@@ -16,16 +16,12 @@ export function CategoryForm({ initialData, onClose }: CategoryFormProps) {
     const { addCategory, updateCategory } = useStore();
     const [formData, setFormData] = useState({
         name: "",
-        description: "",
-        image_url: "",
     });
 
     useEffect(() => {
         if (initialData) {
             setFormData({
                 name: initialData.name,
-                description: initialData.description || "",
-                image_url: initialData.image_url || "",
             });
         }
     }, [initialData]);
@@ -63,23 +59,6 @@ export function CategoryForm({ initialData, onClose }: CategoryFormProps) {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-            />
-
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={3}
-                    required
-                />
-            </div>
-
-            <Input
-                label="Image URL (optional)"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
             />
 
             <div className="flex justify-end gap-3 mt-4">

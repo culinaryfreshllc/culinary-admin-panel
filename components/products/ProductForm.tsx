@@ -5,6 +5,7 @@ import { useStore, Product, ProductStatus } from "../../context/StoreContext";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { MultiSelect } from "../ui/MultiSelect";
+import { ImageUpload } from "../ui/ImageUpload";
 import api from "../../lib/axios";
 import { useRouter } from "next/navigation";
 
@@ -50,11 +51,18 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
 
     useEffect(() => {
         if (initialData) {
+
+            // Extract category IDs - API returns categoryIds array
+            const categoryIds = (initialData as any).categoryIds
+                || ((initialData as any).categories
+                    ? (initialData as any).categories.map((cat: any) => cat.id || cat._id)
+                    : initialData.categoryId || []);
+
             setFormData({
                 name: initialData.name,
                 shortDescription: initialData.description || "",
                 imageUrl: initialData.imageUrl || "",
-                categoryId: [], // TODO: Map from initialData.category if possible
+                categoryId: categoryIds,
                 price: initialData.price,
                 stock: initialData.stock,
                 sku: initialData.sku,
@@ -62,8 +70,9 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
                 status: initialData.status,
                 featured: initialData.featured,
             });
+
         }
-    }, [initialData]);
+    }, [initialData, categoryOptions]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,18 +80,24 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
 
         try {
             if (initialData) {
-                // Update logic (if API supports it)
-                updateProduct(initialData.id, {
-                    ...formData,
-                    description: formData.shortDescription
+                // Update logic
+                await api.put(`/products/${initialData.id}`, {
+                    name: formData.name,
+                    shortDescription: formData.shortDescription,
+                    imageUrl: formData.imageUrl,
+                    categoryId: formData.categoryId,
                 });
+
+                // Refresh the page to show updated data
+                router.refresh();
+                onClose();
             } else {
                 // Create logic
                 const payload = {
                     name: formData.name,
                     shortDescription: formData.shortDescription,
                     imageUrl: formData.imageUrl,
-                    categoryId: formData.categoryId.length > 0 ? formData.categoryId : ["6950e3026524a3cf41844da4"] // Default if empty
+                    categoryId: formData.categoryId.length > 0 ? formData.categoryId : [] // Default if empty
                 };
 
                 const response = await api.post('/products', payload);
@@ -118,10 +133,9 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
                 />
             </div>
 
-            <Input
-                label="Image URL"
+            <ImageUpload
                 value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
                 required
             />
 

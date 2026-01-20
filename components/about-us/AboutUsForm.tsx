@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useStore, AboutUs } from "../../context/StoreContext";
+import { AboutUs } from "../../context/StoreContext";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
+import api from "../../lib/axios";
+import { useRouter } from "next/navigation";
 
 interface AboutUsFormProps {
     initialData?: AboutUs;
@@ -11,7 +13,8 @@ interface AboutUsFormProps {
 }
 
 export function AboutUsForm({ initialData, onClose }: AboutUsFormProps) {
-    const { addAboutUs, updateAboutUs } = useStore();
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: "",
         content: "",
@@ -28,14 +31,27 @@ export function AboutUsForm({ initialData, onClose }: AboutUsFormProps) {
         }
     }, [initialData]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (initialData) {
-            updateAboutUs(initialData.id, formData);
-        } else {
-            addAboutUs(formData);
+        setLoading(true);
+
+        try {
+            if (initialData) {
+                // Update existing About Us
+                await api.put(`/about-us/${initialData.id}`, formData);
+            } else {
+                // Create new About Us (though typically there's only one)
+                await api.post('/about-us', formData);
+            }
+
+            router.refresh();
+            onClose();
+        } catch (error) {
+            console.error("Failed to save About Us:", error);
+            alert("Failed to save content. Please try again.");
+        } finally {
+            setLoading(false);
         }
-        onClose();
     };
 
     return (
@@ -65,11 +81,11 @@ export function AboutUsForm({ initialData, onClose }: AboutUsFormProps) {
             />
 
             <div className="flex justify-end gap-3 mt-4">
-                <Button type="button" variant="secondary" onClick={onClose}>
+                <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
                     Cancel
                 </Button>
-                <Button type="submit">
-                    {initialData ? "Update Content" : "Add Content"}
+                <Button type="submit" disabled={loading}>
+                    {loading ? "Saving..." : (initialData ? "Update Content" : "Add Content")}
                 </Button>
             </div>
         </form>
