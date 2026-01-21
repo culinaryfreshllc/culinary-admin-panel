@@ -53,8 +53,8 @@ export default function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
           <nav className="flex flex-col gap-2">
             <NavItem href="/products" icon={<ShoppingBag size={20} />} label="Products" active={isActive("/products")} collapsed={isCollapsed} />
             <NavItem href="/categories" icon={<Grid3x3 size={20} />} label="Categories" active={isActive("/categories")} collapsed={isCollapsed} />
-
             <NavItem href="/about-us" icon={<FileText size={20} />} label="About Us" active={isActive("/about-us")} collapsed={isCollapsed} />
+            <NavItem href="/company-info" icon={<Shield size={20} />} label="Company Info" active={isActive("/company-info")} collapsed={isCollapsed} />
             <NavItem href="/contact-us" icon={<Mail size={20} />} label="Contact Us" active={isActive("/contact-us")} collapsed={isCollapsed} />
           </nav>
         </div>

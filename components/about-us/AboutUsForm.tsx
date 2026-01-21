@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { AboutUs } from "../../context/StoreContext";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
+import { ImageUpload } from "../ui/ImageUpload";
 import api from "../../lib/axios";
 import { useRouter } from "next/navigation";
 
@@ -44,6 +45,7 @@ export function AboutUsForm({ initialData, onClose }: AboutUsFormProps) {
                 await api.post('/about-us', formData);
             }
 
+            // Refresh the page to show updated data
             router.refresh();
             onClose();
         } catch (error) {
@@ -74,10 +76,10 @@ export function AboutUsForm({ initialData, onClose }: AboutUsFormProps) {
                 />
             </div>
 
-            <Input
-                label="Image URL (optional)"
+            <ImageUpload
+                label="About Us Image"
                 value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                onChange={(url) => setFormData({ ...formData, image_url: url })}
             />
 
             <div className="flex justify-end gap-3 mt-4">

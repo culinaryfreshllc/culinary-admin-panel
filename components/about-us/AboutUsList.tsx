@@ -5,15 +5,19 @@ import { AboutUs } from "../../context/StoreContext";
 import { AboutUsForm } from "./AboutUsForm";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
-import { Edit2, FileText } from "lucide-react";
+import { Edit2, FileText, Trash2 } from "lucide-react";
+import api from "../../lib/axios";
+import { useRouter } from "next/navigation";
 
 interface AboutUsListProps {
     initialData?: AboutUs | null;
 }
 
 export default function AboutUsList({ initialData }: AboutUsListProps) {
+    const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [aboutUsData, setAboutUsData] = useState<AboutUs | null>(initialData || null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         if (initialData) {
@@ -21,17 +25,50 @@ export default function AboutUsList({ initialData }: AboutUsListProps) {
         }
     }, [initialData]);
 
+    const handleCreate = () => {
+        setAboutUsData(null); // Ensure no initial data for create mode
+        setIsModalOpen(true);
+    };
+
     const handleEdit = () => {
         setIsModalOpen(true);
+    };
+
+    const handleDelete = async () => {
+        if (!aboutUsData || !confirm("Are you sure you want to delete this About Us content?")) return;
+
+        setIsDeleting(true);
+        try {
+            await api.delete(`/about-us/${aboutUsData.id}`);
+            setAboutUsData(null);
+            router.refresh();
+        } catch (error) {
+            console.error("Failed to delete About Us:", error);
+            alert("Failed to delete content. Please try again.");
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     if (!aboutUsData) {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-12 text-center text-gray-500">
+                <div className="p-12 text-center text-gray-500 flex flex-col items-center">
                     <FileText size={48} className="mx-auto mb-3 text-gray-300" />
-                    <p>No About Us content found.</p>
+                    <p className="mb-4">No About Us content found.</p>
+                    <Button onClick={handleCreate}>
+                        Add About Us
+                    </Button>
                 </div>
+                <Modal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    title="Add About Us Content"
+                >
+                    <AboutUsForm
+                        onClose={() => setIsModalOpen(false)}
+                    />
+                </Modal>
             </div>
         );
     }
@@ -44,16 +81,16 @@ export default function AboutUsList({ initialData }: AboutUsListProps) {
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shrink-0">
+                                <div className="w-12 h-12 rounded-lg bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shrink-0">
                                     <FileText size={24} />
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-gray-900 text-xl">{aboutUsData.title}</h3>
                                     <p className="text-xs text-gray-500">
-                                        Last updated: {aboutUsData.updated_at
-                                            ? new Date(aboutUsData.updated_at).toLocaleDateString()
-                                            : (aboutUsData.created_at
-                                                ? new Date(aboutUsData.created_at).toLocaleDateString()
+                                        Last updated: {aboutUsData.updatedAt
+                                            ? new Date(aboutUsData.updatedAt).toLocaleDateString()
+                                            : (aboutUsData.createdAt
+                                                ? new Date(aboutUsData.createdAt).toLocaleDateString()
                                                 : 'N/A')}
                                     </p>
                                 </div>
@@ -71,13 +108,21 @@ export default function AboutUsList({ initialData }: AboutUsListProps) {
                                 </div>
                             )}
                         </div>
-                        <div>
+                        <div className="flex flex-col gap-2">
                             <Button
                                 onClick={handleEdit}
                                 variant="secondary"
                                 icon={<Edit2 size={16} />}
                             >
                                 Edit
+                            </Button>
+                            <Button
+                                onClick={handleDelete}
+                                variant="danger"
+                                icon={<Trash2 size={16} />}
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? "Deleting..." : "Delete"}
                             </Button>
                         </div>
                     </div>

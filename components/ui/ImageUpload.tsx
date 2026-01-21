@@ -9,9 +9,10 @@ interface ImageUploadProps {
     value?: string;
     onChange: (url: string) => void;
     required?: boolean;
+    label?: string;
 }
 
-export function ImageUpload({ value, onChange, required = false }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, required = false, label = "Product Image" }: ImageUploadProps) {
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string>("");
     const [preview, setPreview] = useState<string>(value || "");
@@ -25,11 +26,7 @@ export function ImageUpload({ value, onChange, required = false }: ImageUploadPr
 
         const file = acceptedFiles[0];
 
-        // Validate file size (5MB limit)
-        if (file.size > 5 * 1024 * 1024) {
-            setError("File size must be less than 5MB");
-            return;
-        }
+
 
         setError("");
         setUploading(true);
@@ -85,7 +82,7 @@ export function ImageUpload({ value, onChange, required = false }: ImageUploadPr
     return (
         <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Image {required && <span className="text-red-500">*</span>}
+                {label} {required && <span className="text-red-500">*</span>}
             </label>
 
             {preview ? (
@@ -139,7 +136,7 @@ export function ImageUpload({ value, onChange, required = false }: ImageUploadPr
                                         )}
                                     </p>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        PNG, JPG, GIF, WEBP (max 5MB)
+                                        PNG, JPG, GIF, WEBP
                                     </p>
                                 </div>
                             </>

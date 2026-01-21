@@ -36,8 +36,7 @@ export default function ProductList({ initialProducts, pagination }: { initialPr
     }, [initialProducts, setProducts]);
 
     const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.sku.toLowerCase().includes(searchTerm.toLowerCase())
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleEdit = (product: Product) => {
@@ -98,8 +97,6 @@ export default function ProductList({ initialProducts, pagination }: { initialPr
                         <span className="text-gray-400">Sort by:</span>
                         <select className="bg-transparent border-none font-semibold text-gray-800 focus:ring-0 cursor-pointer">
                             <option>Default</option>
-                            <option>Price: Low to High</option>
-                            <option>Price: High to Low</option>
                         </select>
                     </div>
                 </div>
@@ -128,13 +125,6 @@ export default function ProductList({ initialProducts, pagination }: { initialPr
                     </select>
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-xs text-black font-semibold mb-1">Price</span>
-                    <select className="bg-white border border-gray-200 rounded px-2 py-1 text-gray-700 text-xs">
-                        <option>$50 - $100</option>
-                        <option>Over $100</option>
-                    </select>
-                </div>
-                <div className="flex flex-col">
                     <span className="text-xs text-black font-semibold mb-1">Store</span>
                     <select className="bg-white border border-gray-200 rounded px-2 py-1 text-gray-700 text-xs">
                         <option>All Store</option>
@@ -149,8 +139,6 @@ export default function ProductList({ initialProducts, pagination }: { initialPr
                         <tr>
                             <th className="px-6 py-4">Product</th>
                             <th className="px-6 py-4">Category</th>
-                            <th className="px-6 py-4">Price</th>
-                            <th className="px-6 py-4">Stock</th>
                             <th className="px-6 py-4">Rating</th>
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4 text-right">Action</th>
@@ -181,10 +169,6 @@ export default function ProductList({ initialProducts, pagination }: { initialPr
                                                 )}
                                             </div>
                                             <p className="text-xs text-gray-500 line-clamp-1 max-w-[200px]">{product.description}</p>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                {product.weight && <span className="text-[10px] text-gray-400 font-medium bg-gray-50 px-1.5 rounded">{product.weight}</span>}
-                                                <span className="text-[10px] text-gray-400">SKU: {product.sku}</span>
-                                            </div>
                                         </div>
                                     </div>
                                 </td>
@@ -193,13 +177,7 @@ export default function ProductList({ initialProducts, pagination }: { initialPr
                                         {product.category}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 font-bold text-gray-900">${product.price.toFixed(2)}</td>
-                                <td className="px-6 py-4 text-gray-600">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className={`w-1.5 h-1.5 rounded-full ${product.stock > 50 ? 'bg-green-500' : product.stock > 10 ? 'bg-amber-500' : 'bg-red-500'}`} />
-                                        {product.stock}
-                                    </div>
-                                </td>
+
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-1">
                                         <span className="text-amber-400 text-sm">★</span>

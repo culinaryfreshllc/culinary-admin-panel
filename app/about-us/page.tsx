@@ -4,8 +4,18 @@ import api from "../../lib/axios";
 async function getAboutUs() {
     try {
         const response = await api.get('/about-us?page=1&limit=10');
-        // API returns an array with single item, get the first one
-        return response.data.data[0] || null;
+        console.log("About Us response data:", JSON.stringify(response.data, null, 2));
+
+        if (Array.isArray(response.data)) {
+            return response.data[0] || null;
+        }
+
+        if (response.data && Array.isArray(response.data.data)) {
+            return response.data.data[0] || null;
+        }
+
+        // Fallback or unexpected structure
+        return null;
     } catch (error) {
         console.error("Failed to fetch about us:", error);
         return null;

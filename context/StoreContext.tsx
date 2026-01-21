@@ -8,9 +8,6 @@ export type ProductStatus = "In Stock" | "Out of Stock";
 export interface Product {
     id: string;
     name: string;
-    sku: string;
-    price: number;
-    stock: number;
     views: number;
     status: ProductStatus;
     featured: boolean;
@@ -21,7 +18,6 @@ export interface Product {
     reviews?: number;
     tag?: string;
     description?: string;
-    weight?: string;
 }
 
 export interface Tag {
@@ -44,8 +40,22 @@ export interface AboutUs {
     title: string;
     content: string;
     image_url?: string;
-    created_at?: string;
-    updated_at?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface CompanyInfo {
+    id: string;
+    companyName: string;
+    phone: string;
+    email: string;
+    address: string;
+    location: string;
+    businessHours: string;
+    latitude?: number;
+    longitude?: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface ContactUs {
@@ -72,13 +82,13 @@ interface StoreContextType {
     updateProduct: (id: string, product: Partial<Product>) => void;
     deleteProduct: (id: string) => void;
     toggleFeatured: (id: string) => void;
-    addCategory: (category: Omit<Category, "id" | "created_at" | "updated_at">) => void;
+    addCategory: (category: Omit<Category, "id" | "createdAt" | "updatedAt">) => void;
     updateCategory: (id: string, category: Partial<Category>) => void;
     deleteCategory: (id: string) => void;
-    addAboutUs: (aboutUs: Omit<AboutUs, "id" | "created_at" | "updated_at">) => void;
+    addAboutUs: (aboutUs: Omit<AboutUs, "id" | "createdAt" | "updatedAt">) => void;
     updateAboutUs: (id: string, aboutUs: Partial<AboutUs>) => void;
     deleteAboutUs: (id: string) => void;
-    addContactUs: (contactUs: Omit<ContactUs, "id" | "created_at">) => void;
+    addContactUs: (contactUs: Omit<ContactUs, "id" | "createdAt">) => void;
     updateContactUs: (id: string, contactUs: Partial<ContactUs>) => void;
     deleteContactUs: (id: string) => void;
 }
@@ -86,13 +96,13 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 const DUMMY_PRODUCTS: Product[] = [
-    { id: "1", name: "Gabriela Cashmere Blazer", sku: "T14116", price: 113.99, stock: 1113, views: 14012, status: "In Stock", featured: false, category: "Jackets" },
-    { id: "2", name: "Loewe blend Jacket - Blue", sku: "T14116", price: 113.99, stock: 721, views: 13212, status: "In Stock", featured: true, category: "Jackets" },
-    { id: "3", name: "Sandro - Jacket - Black", sku: "T14116", price: 113.99, stock: 407, views: 8201, status: "In Stock", featured: false, category: "Jackets" },
-    { id: "4", name: "Adidas By Stella McCartney", sku: "T14116", price: 113.99, stock: 1203, views: 1002, status: "In Stock", featured: false, category: "Jackets" },
-    { id: "5", name: "Meteo Hooded Wool Jacket", sku: "T14116", price: 113.99, stock: 306, views: 807, status: "In Stock", featured: true, category: "Jackets" },
-    { id: "6", name: "Hida Down Ski Jacket - Red", sku: "T14116", price: 113.99, stock: 201, views: 406, status: "In Stock", featured: false, category: "Jackets" },
-    { id: "7", name: "Dolce & Gabbana", sku: "T14116", price: 113.99, stock: 108, views: 204, status: "In Stock", featured: false, category: "Jackets" },
+    { id: "1", name: "Gabriela Cashmere Blazer", views: 14012, status: "In Stock", featured: false, category: "Jackets" },
+    { id: "2", name: "Loewe blend Jacket - Blue", views: 13212, status: "In Stock", featured: true, category: "Jackets" },
+    { id: "3", name: "Sandro - Jacket - Black", views: 8201, status: "In Stock", featured: false, category: "Jackets" },
+    { id: "4", name: "Adidas By Stella McCartney", views: 1002, status: "In Stock", featured: false, category: "Jackets" },
+    { id: "5", name: "Meteo Hooded Wool Jacket", views: 807, status: "In Stock", featured: true, category: "Jackets" },
+    { id: "6", name: "Hida Down Ski Jacket - Red", views: 406, status: "In Stock", featured: false, category: "Jackets" },
+    { id: "7", name: "Dolce & Gabbana", views: 204, status: "In Stock", featured: false, category: "Jackets" },
 ];
 
 const DUMMY_CATEGORIES: Category[] = [
@@ -168,12 +178,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
 
     // About Us CRUD operations
-    const addAboutUs = (aboutUs: Omit<AboutUs, "id" | "created_at" | "updated_at">) => {
+    const addAboutUs = (aboutUs: Omit<AboutUs, "id" | "createdAt" | "updatedAt">) => {
         const newAboutUs: AboutUs = {
             ...aboutUs,
             id: Math.random().toString(36).substr(2, 9),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         };
         setAboutUs((prev) => [newAboutUs, ...prev]);
     };
@@ -189,11 +199,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
 
     // Contact Us CRUD operations
-    const addContactUs = (contactUs: Omit<ContactUs, "id" | "created_at">) => {
+    const addContactUs = (contactUs: Omit<ContactUs, "id" | "createdAt">) => {
         const newContactUs: ContactUs = {
             ...contactUs,
             id: Math.random().toString(36).substr(2, 9),
-            created_at: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
         };
         setContactUs((prev) => [newContactUs, ...prev]);
     };

@@ -24,9 +24,9 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
         imageUrl: "",
         categoryId: [] as string[],
         // Keeping these for UI state even if API doesn't use them all yet
-        price: 0,
-        stock: 0,
-        sku: "",
+        // price: 0,
+        // stock: 0,
+
         category: "",
         status: "In Stock" as ProductStatus,
         featured: false,
@@ -63,9 +63,9 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
                 shortDescription: initialData.description || "",
                 imageUrl: initialData.imageUrl || "",
                 categoryId: categoryIds,
-                price: initialData.price,
-                stock: initialData.stock,
-                sku: initialData.sku,
+                // price: initialData.price,
+                // stock: initialData.stock,
+
                 category: initialData.category,
                 status: initialData.status,
                 featured: initialData.featured,
