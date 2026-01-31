@@ -153,16 +153,17 @@ export default function CompanyInfoList({ initialData = [] }: CompanyInfoListPro
                                         </div>
                                     </div>
 
-                                    {(companyInfo.latitude !== undefined && companyInfo.longitude !== undefined) && (
-                                        <div className="mt-3 bg-slate-50 border border-gray-100 rounded-xl overflow-hidden h-40">
-                                            <LeafletMap
-                                                center={[companyInfo.latitude, companyInfo.longitude]}
-                                                markerPosition={[companyInfo.latitude, companyInfo.longitude]}
-                                                readonly={true}
-                                                zoom={13}
-                                            />
-                                        </div>
-                                    )}
+                                    {(companyInfo.latitude !== null && companyInfo.latitude !== undefined &&
+                                        companyInfo.longitude !== null && companyInfo.longitude !== undefined) && (
+                                            <div className="mt-3 bg-slate-50 border border-gray-100 rounded-xl overflow-hidden h-40">
+                                                <LeafletMap
+                                                    center={[companyInfo.latitude, companyInfo.longitude]}
+                                                    markerPosition={[companyInfo.latitude, companyInfo.longitude]}
+                                                    readonly={true}
+                                                    zoom={13}
+                                                />
+                                            </div>
+                                        )}
                                 </div>
                             </div>
 

@@ -1,36 +1,35 @@
 import AboutUsList from "../../components/about-us/AboutUsList";
 import api from "../../lib/axios";
+import { AboutUs } from "../../context/StoreContext";
 
-async function getAboutUs() {
+async function getAllAboutUs(): Promise<AboutUs[]> {
     try {
-        const response = await api.get('/about-us?page=1&limit=10');
-        console.log("About Us response data:", JSON.stringify(response.data, null, 2));
+        // API returns an array directly (not paginated)
+        const response = await api.get('/about-us');
 
+        // Response is an array of AboutUs items
         if (Array.isArray(response.data)) {
-            return response.data[0] || null;
+            return response.data;
         }
 
-        if (response.data && Array.isArray(response.data.data)) {
-            return response.data.data[0] || null;
-        }
-
-        // Fallback or unexpected structure
-        return null;
+        // Fallback for unexpected structure
+        console.warn("Unexpected About Us API response structure:", response.data);
+        return [];
     } catch (error) {
         console.error("Failed to fetch about us:", error);
-        return null;
+        return [];
     }
 }
 
 export default async function AboutUsPage() {
-    const aboutUsData = await getAboutUs();
+    const aboutUsItems = await getAllAboutUs();
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-800">About Us</h1>
             </div>
-            <AboutUsList initialData={aboutUsData} />
+            <AboutUsList initialData={aboutUsItems} />
         </div>
     );
 }

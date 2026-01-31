@@ -84,6 +84,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
             <button
               onClick={() => {
                 localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
                 window.location.href = '/login';
               }}
               className={`shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 ${isCollapsed ? "hidden group-hover:block" : ""}`}

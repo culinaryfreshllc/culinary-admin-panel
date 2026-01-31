@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "../../../lib/axios";
-import { ChevronLeft, Mail, Phone, Calendar, Clock, User, Trash2, Archive, Reply, ShieldAlert } from "lucide-react";
+import { ChevronLeft, Mail, Calendar, Clock, User, Trash2, ShieldAlert } from "lucide-react";
 import { Button } from "../../../components/ui/Button";
 import { Badge } from "../../../components/ui/Badge";
 import { ContactUs } from "../../../context/StoreContext";
@@ -17,13 +17,15 @@ export default function ContactDetailsPage() {
     const [contact, setContact] = useState<ContactUs | null>(null);
     const [loading, setLoading] = useState(true);
     const [permissionDenied, setPermissionDenied] = useState(false);
+    const [updatingStatus, setUpdatingStatus] = useState(false);
 
     useEffect(() => {
         const fetchContactDetails = async () => {
             if (!id) return;
             try {
                 const response = await api.get(`/contact-us/${id}`);
-                setContact(response.data);
+                // API returns { message, data }
+                setContact(response.data.data || response.data);
             } catch (error: any) {
                 if (error.response && error.response.status === 403) {
                     setPermissionDenied(true);
@@ -36,6 +38,32 @@ export default function ContactDetailsPage() {
         };
         fetchContactDetails();
     }, [id]);
+
+    const handleStatusChange = async (newStatus: ContactUs["status"]) => {
+        if (!contact) return;
+        setUpdatingStatus(true);
+        try {
+            await api.patch(`/contact-us/${id}/status`, { status: newStatus });
+            setContact({ ...contact, status: newStatus });
+        } catch (error) {
+            console.error("Failed to update status:", error);
+            alert("Failed to update status. Please try again.");
+        } finally {
+            setUpdatingStatus(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (confirm("Are you sure you want to delete this message?")) {
+            try {
+                await api.delete(`/contact-us/${id}`);
+                router.push('/contact-us');
+            } catch (error) {
+                console.error("Failed to delete contact:", error);
+                alert("Failed to delete contact.");
+            }
+        }
+    };
 
     if (loading) {
         return <div className="p-12 text-center text-gray-500">Loading message details...</div>;
@@ -57,6 +85,7 @@ export default function ContactDetailsPage() {
                     variant="secondary"
                     onClick={() => {
                         localStorage.removeItem('token');
+                        localStorage.removeItem('refreshToken');
                         window.location.href = '/login';
                     }}
                 >
@@ -78,26 +107,15 @@ export default function ContactDetailsPage() {
         );
     }
 
-    const { name, email, phone, subject, message, createdAt, created_at, status } = contact;
-    const date = createdAt || created_at;
+    const { name, email, subject, message, createdAt, status } = contact;
 
-    const getStatusVariant = (s?: string) => {
+    const getStatusVariant = (s: string) => {
         switch (s) {
-            case "responded": return "success";
-            case "archived": return "default";
-            default: return "warning";
-        }
-    };
-
-    const handleDelete = async () => {
-        if (confirm("Are you sure you want to delete this message?")) {
-            try {
-                await api.delete(`/contact-us/${id}`);
-                router.push('/contact-us');
-            } catch (error) {
-                console.error("Failed to delete contact:", error);
-                alert("Failed to delete contact.");
-            }
+            case "RESOLVED": return "success";
+            case "CLOSED": return "default";
+            case "IN_PROGRESS": return "warning";
+            case "SPAM": return "error";
+            default: return "warning"; // PENDING
         }
     };
 
@@ -115,7 +133,6 @@ export default function ContactDetailsPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button variant="secondary" icon={<Archive size={16} />}>Archive</Button>
                     <Button variant="danger" onClick={handleDelete} icon={<Trash2 size={16} />}>Delete</Button>
                 </div>
             </div>
@@ -129,28 +146,33 @@ export default function ContactDetailsPage() {
                                 <h2 className="text-xl font-bold text-gray-800 mb-1">{subject || "No Subject"}</h2>
                                 <div className="flex items-center gap-2 text-sm text-gray-500">
                                     <Clock size={14} />
-                                    <span>{date ? new Date(date).toLocaleString() : "Unknown Date"}</span>
+                                    <span>{new Date(createdAt).toLocaleString()}</span>
                                 </div>
                             </div>
-                            <Badge variant={getStatusVariant(status)}>{status || "pending"}</Badge>
+                            <Badge variant={getStatusVariant(status)}>{status}</Badge>
                         </div>
                         <div className="p-8">
                             <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-lg">{message}</p>
                         </div>
                     </div>
 
-                    {/* Response Section Placeholder */}
+                    {/* Status Management */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <Reply size={20} className="text-primary" />
-                            Reply to Customer
-                        </h3>
-                        <textarea
-                            className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all min-h-[150px]"
-                            placeholder="Type your response here..."
-                        ></textarea>
-                        <div className="flex justify-end mt-4">
-                            <Button icon={<Reply size={16} />}>Send Response</Button>
+                        <h3 className="text-lg font-bold text-gray-800 mb-4">Update Status</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {(["PENDING", "IN_PROGRESS", "RESOLVED", "CLOSED", "SPAM"] as const).map((statusOption) => (
+                                <button
+                                    key={statusOption}
+                                    onClick={() => handleStatusChange(statusOption)}
+                                    disabled={updatingStatus || status === statusOption}
+                                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${status === statusOption
+                                            ? "bg-primary text-white"
+                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                >
+                                    {statusOption}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -161,7 +183,7 @@ export default function ContactDetailsPage() {
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Sender Information</h3>
 
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="w-16 h-16 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
                                 {name ? name.charAt(0).toUpperCase() : <User size={32} />}
                             </div>
                             <div>
@@ -179,22 +201,12 @@ export default function ContactDetailsPage() {
                                 </div>
                             </div>
 
-                            {phone && (
-                                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                                    <Phone size={18} className="text-gray-400 mt-0.5" />
-                                    <div>
-                                        <p className="text-xs text-gray-400 font-medium">Phone Number</p>
-                                        <a href={`tel:${phone}`} className="text-sm font-medium text-gray-700 hover:text-primary">{phone}</a>
-                                    </div>
-                                </div>
-                            )}
-
                             <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                                 <Calendar size={18} className="text-gray-400 mt-0.5" />
                                 <div>
                                     <p className="text-xs text-gray-400 font-medium">Received On</p>
                                     <p className="text-sm font-medium text-gray-700">
-                                        {date ? new Date(date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : "N/A"}
+                                        {new Date(createdAt).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                     </p>
                                 </div>
                             </div>

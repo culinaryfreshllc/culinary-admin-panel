@@ -1,7 +1,6 @@
 import ProductList from "../../components/products/ProductList";
 import api from "../../lib/axios";
 import { Product, ProductStatus } from "../../context/StoreContext";
-import { MOCK_PRODUCTS_DATA } from "../../lib/mock-data";
 
 
 
@@ -9,29 +8,28 @@ async function getProducts(page: number, limit: number): Promise<{ products: Pro
     try {
         const response = await api.get(`/products?page=${page}&limit=${limit}`);
         const products = response.data.data.map((item: any, index: number) => {
-            // Try to find a mock product by fuzzy name matching or just round-robin for demo
-            const mockProduct = MOCK_PRODUCTS_DATA.find(p => item.name.toLowerCase().includes(p.name.toLowerCase())) || MOCK_PRODUCTS_DATA[index % MOCK_PRODUCTS_DATA.length];
-
-            const stock = Math.floor(Math.random() * 500);
-            const status: ProductStatus = stock > 0 ? "In Stock" : "Out of Stock";
+            // Get the first category name for backward compatibility, or "Uncategorized"
+            const categoryName = item.categories && item.categories.length > 0
+                ? item.categories[0].name
+                : "Uncategorized";
 
             return {
                 id: item.id,
                 name: item.name,
-                sku: item.id.substring(0, 8).toUpperCase(),
-                price: mockProduct.price || (Math.floor(Math.random() * 100) + 20),
-                stock,
-                views: mockProduct.reviews * 10 || Math.floor(Math.random() * 1000),
-                status,
-                featured: index % 3 === 0, // Just a dummy logic for featured
-                category: mockProduct.category || "General",
-                categoryId: item.categoryIds || [], // Include categoryIds from API (note: plural)
-                imageUrl: item.imageUrl || mockProduct.image,
-                description: item.shortDescription || mockProduct.description,
-                rating: mockProduct.rating,
-                reviews: mockProduct.reviews,
-                tag: mockProduct.tag,
-                weight: mockProduct.weight
+                views: item.views || 0,
+                status: item.status as ProductStatus, // API returns IN_STOCK or OUT_OF_STOCK
+                featured: item.featured || false,
+                category: categoryName, // Legacy field - first category name
+                categoryId: item.categoryIds || [], // Array of category IDs
+                categoryIds: item.categoryIds || [], // API field name
+                categories: item.categories || [], // New categories array with id and name
+                imageUrl: item.imageUrl || "",
+                rating: item.rating,
+                reviews: item.reviews,
+                tag: item.tag,
+                description: item.description,
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
             };
         });
 

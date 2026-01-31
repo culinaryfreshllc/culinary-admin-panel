@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useStore, Product, ProductStatus } from "../../context/StoreContext";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
-import { MultiSelect } from "../ui/MultiSelect";
 import { ImageUpload } from "../ui/ImageUpload";
 import api from "../../lib/axios";
 import { useRouter } from "next/navigation";
@@ -20,16 +19,15 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
     const router = useRouter();
     const [formData, setFormData] = useState({
         name: "",
-        shortDescription: "",
+        description: "",
         imageUrl: "",
-        categoryId: [] as string[],
-        // Keeping these for UI state even if API doesn't use them all yet
-        // price: 0,
-        // stock: 0,
-
-        category: "",
-        status: "In Stock" as ProductStatus,
+        categoryId: "", // Single category ID (string)
+        status: "IN_STOCK" as "IN_STOCK" | "OUT_OF_STOCK",
         featured: false,
+        category: "", // Category name
+        rating: 0,
+        reviews: 0,
+        tag: "",
     });
 
     const [categoryOptions, setCategoryOptions] = useState<{ id: string, name: string }[]>([]);
@@ -51,26 +49,34 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
 
     useEffect(() => {
         if (initialData) {
+            // Extract the first category ID from the API structure
+            let categoryId = "";
+            let categoryName = "";
 
-            // Extract category IDs - API returns categoryIds array
-            const categoryIds = (initialData as any).categoryIds
-                || ((initialData as any).categories
-                    ? (initialData as any).categories.map((cat: any) => cat.id || cat._id)
-                    : initialData.categoryId || []);
+            if ((initialData as any).categoryIds && Array.isArray((initialData as any).categoryIds) && (initialData as any).categoryIds.length > 0) {
+                categoryId = (initialData as any).categoryIds[0];
+            } else if ((initialData as any).categories && Array.isArray((initialData as any).categories) && (initialData as any).categories.length > 0) {
+                categoryId = (initialData as any).categories[0].id;
+                categoryName = (initialData as any).categories[0].name;
+            } else if (initialData.categoryId && Array.isArray(initialData.categoryId) && initialData.categoryId.length > 0) {
+                categoryId = initialData.categoryId[0];
+            }
+
+            // Status is already in correct format (IN_STOCK or OUT_OF_STOCK)
+            const apiStatus = initialData.status === "IN_STOCK" ? "IN_STOCK" : "OUT_OF_STOCK";
 
             setFormData({
                 name: initialData.name,
-                shortDescription: initialData.description || "",
+                description: initialData.description || "",
                 imageUrl: initialData.imageUrl || "",
-                categoryId: categoryIds,
-                // price: initialData.price,
-                // stock: initialData.stock,
-
-                category: initialData.category,
-                status: initialData.status,
-                featured: initialData.featured,
+                categoryId: categoryId,
+                status: apiStatus,
+                featured: initialData.featured || false,
+                category: categoryName || initialData.category || "",
+                rating: initialData.rating || 0,
+                reviews: initialData.reviews || 0,
+                tag: initialData.tag || "",
             });
-
         }
     }, [initialData, categoryOptions]);
 
@@ -79,33 +85,33 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
         setLoading(true);
 
         try {
+            // Get the selected category name
+            const selectedCategory = categoryOptions.find(cat => cat.id === formData.categoryId);
+
+            const payload = {
+                name: formData.name,
+                description: formData.description,
+                imageUrl: formData.imageUrl,
+                categoryId: formData.categoryId,
+                status: formData.status,
+                featured: formData.featured,
+                category: selectedCategory?.name || formData.category,
+                rating: formData.rating,
+                reviews: formData.reviews,
+                tag: formData.tag || undefined, // Send undefined if empty
+            };
+
             if (initialData) {
                 // Update logic
-                await api.put(`/products/${initialData.id}`, {
-                    name: formData.name,
-                    shortDescription: formData.shortDescription,
-                    imageUrl: formData.imageUrl,
-                    categoryId: formData.categoryId,
-                });
-
-                // Refresh the page to show updated data
-                router.refresh();
-                onClose();
+                await api.put(`/products/${initialData.id}`, payload);
             } else {
                 // Create logic
-                const payload = {
-                    name: formData.name,
-                    shortDescription: formData.shortDescription,
-                    imageUrl: formData.imageUrl,
-                    categoryId: formData.categoryId.length > 0 ? formData.categoryId : [] // Default if empty
-                };
-
-                const response = await api.post('/products', payload);
-
-                // Refresh the page to show new data since we're using server components for the main list
-                router.refresh();
-                onClose();
+                await api.post('/products', payload);
             }
+
+            // Refresh the page to show updated/new data
+            router.refresh();
+            onClose();
         } catch (error) {
             console.error("Failed to save product:", error);
             alert("Failed to save product");
@@ -127,8 +133,8 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-h-[80px]"
-                    value={formData.shortDescription}
-                    onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     required
                 />
             </div>
@@ -140,14 +146,72 @@ export function ProductForm({ initialData, onClose }: ProductFormProps) {
             />
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categories</label>
-                <MultiSelect
-                    options={categoryOptions.map(c => ({ label: c.name, value: c.id }))}
-                    selected={formData.categoryId}
-                    onChange={(selected) => setFormData({ ...formData, categoryId: selected })}
-                    placeholder="Select categories..."
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                    value={formData.categoryId}
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                    required
+                >
+                    <option value="">Select a category...</option>
+                    {categoryOptions.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as "IN_STOCK" | "OUT_OF_STOCK" })}
+                    >
+                        <option value="IN_STOCK">In Stock</option>
+                        <option value="OUT_OF_STOCK">Out of Stock</option>
+                    </select>
+                </div>
+
+                <div className="flex items-center">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={formData.featured}
+                            onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                            className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Featured Product</span>
+                    </label>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <Input
+                    label="Rating (0-5)"
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={formData.rating.toString()}
+                    onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) || 0 })}
+                />
+
+                <Input
+                    label="Reviews Count"
+                    type="number"
+                    min="0"
+                    value={formData.reviews.toString()}
+                    onChange={(e) => setFormData({ ...formData, reviews: parseInt(e.target.value) || 0 })}
                 />
             </div>
+
+            <Input
+                label="Tag (optional)"
+                value={formData.tag}
+                onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                placeholder="e.g., NEW, SALE, POPULAR"
+            />
 
             <div className="flex justify-end gap-3 mt-4">
                 <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>

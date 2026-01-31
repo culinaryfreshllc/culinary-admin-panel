@@ -26,17 +26,23 @@ export default function LoginPage() {
         try {
             const response = await api.post('/auth/login', formData);
 
-            // Extract token - handle multiple possible response structures
-            const token = response.data?.token || response.data?.data?.token || response.data?.accessToken;
+            // Extract tokens from the new API response structure
+            // Response: { message: "...", data: { accessToken, refreshToken, expiresIn } }
+            const accessToken = response.data?.data?.accessToken;
+            const refreshToken = response.data?.data?.refreshToken;
 
-            if (!token) {
-                throw new Error("No token received from server");
+            if (!accessToken) {
+                throw new Error("No access token received from server");
             }
 
-            setAuthToken(token);
-            // Also set header immediately for current instance if needed, 
-            // though interceptor handles next requests
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            // Store tokens in localStorage
+            setAuthToken(accessToken);
+            if (refreshToken && typeof window !== 'undefined') {
+                localStorage.setItem('refreshToken', refreshToken);
+            }
+
+            // Set Authorization header for immediate use
+            api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
             setNotification("Login successful! Redirecting...");
             router.push('/');

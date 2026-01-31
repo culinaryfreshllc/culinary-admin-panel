@@ -43,12 +43,21 @@ export const setAuthToken = (token: string) => {
     }
 };
 
+export const getRefreshToken = () => {
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('refreshToken');
+    }
+    return null;
+};
+
 api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (typeof window !== 'undefined') {
             if (error.response && error.response.status === 401) {
+                // Clear both tokens on unauthorized
                 localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
                 window.location.href = '/login';
             }
         }

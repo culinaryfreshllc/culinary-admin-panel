@@ -40,9 +40,7 @@ export default function ContactUsList({ initialContactUs, pagination }: { initia
             c.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (c.subject && c.subject.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        // Basic mock logic for now, though API might not support filtering yet locally without re-fetch
-        const status = c.status || 'pending';
-        const matchesStatus = statusFilter === "all" || status === statusFilter;
+        const matchesStatus = statusFilter === "all" || c.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
@@ -62,11 +60,13 @@ export default function ContactUsList({ initialContactUs, pagination }: { initia
         }
     };
 
-    const getStatusBadgeVariant = (status?: string) => {
+    const getStatusBadgeVariant = (status: string) => {
         switch (status) {
-            case "responded": return "success";
-            case "archived": return "default";
-            default: return "warning";
+            case "RESOLVED": return "success";
+            case "CLOSED": return "default";
+            case "IN_PROGRESS": return "warning";
+            case "SPAM": return "error";
+            default: return "warning"; // PENDING
         }
     };
 
@@ -98,9 +98,11 @@ export default function ContactUsList({ initialContactUs, pagination }: { initia
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
                         <option value="all">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="responded">Responded</option>
-                        <option value="archived">Archived</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="RESOLVED">Resolved</option>
+                        <option value="CLOSED">Closed</option>
+                        <option value="SPAM">Spam</option>
                     </select>
                 </div>
             </div>
@@ -126,20 +128,13 @@ export default function ContactUsList({ initialContactUs, pagination }: { initia
                             >
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold shrink-0">
+                                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white font-bold shrink-0">
                                             <User size={20} />
                                         </div>
                                         <div>
                                             <p className="font-semibold text-gray-900">{contact.name}</p>
-                                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                                                <span className="flex items-center gap-1">
-                                                    <Mail size={12} /> {contact.email}
-                                                </span>
-                                                {contact.phone && (
-                                                    <span className="flex items-center gap-1">
-                                                        <Phone size={12} /> {contact.phone}
-                                                    </span>
-                                                )}
+                                            <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                                <Mail size={12} /> {contact.email}
                                             </div>
                                         </div>
                                     </div>
@@ -151,11 +146,11 @@ export default function ContactUsList({ initialContactUs, pagination }: { initia
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-gray-600">
-                                    {contact.createdAt ? new Date(contact.createdAt).toLocaleDateString() : (contact.created_at ? new Date(contact.created_at).toLocaleDateString() : 'N/A')}
+                                    {new Date(contact.createdAt).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4">
                                     <Badge variant={getStatusBadgeVariant(contact.status)}>
-                                        {contact.status || 'pending'}
+                                        {contact.status}
                                     </Badge>
                                 </td>
                                 <td className="px-6 py-4">

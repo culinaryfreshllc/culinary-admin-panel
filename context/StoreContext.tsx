@@ -3,7 +3,12 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
 import { DUMMY_ABOUT_US, DUMMY_CONTACT_US } from "../lib/mock-data";
 
-export type ProductStatus = "In Stock" | "Out of Stock";
+export type ProductStatus = "IN_STOCK" | "OUT_OF_STOCK";
+
+export interface ProductCategory {
+    id: string;
+    name: string;
+}
 
 export interface Product {
     id: string;
@@ -11,13 +16,17 @@ export interface Product {
     views: number;
     status: ProductStatus;
     featured: boolean;
-    category: string;
-    categoryId?: string[]; // Array of category IDs for multi-select
+    category: string; // Legacy field for backward compatibility
+    categoryId?: string[]; // Array of category IDs (also called categoryIds in API)
+    categoryIds?: string[]; // API uses this field name
+    categories?: ProductCategory[]; // New field from API - array of category objects
     imageUrl?: string;
-    rating?: number;
-    reviews?: number;
-    tag?: string;
-    description?: string;
+    rating?: number | null;
+    reviews?: number | null;
+    tag?: string | null;
+    description?: string | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
 }
 
 export interface Tag {
@@ -38,8 +47,10 @@ export interface Category {
 export interface AboutUs {
     id: string;
     title: string;
+    titleDescription?: string; // New field from API
+    subtitle?: string; // New field from API
     content: string;
-    image_url?: string;
+    imageUrl?: string; // Changed from image_url to match API
     createdAt?: string;
     updatedAt?: string;
 }
@@ -62,12 +73,10 @@ export interface ContactUs {
     id: string;
     name: string;
     email: string;
-    phone?: string;
     subject?: string;
     message: string;
-    created_at?: string; // Mapped from createdAt
-    createdAt?: string; // Direct from API
-    status?: "pending" | "responded" | "archived"; // Not in API example but used in UI
+    status: "PENDING" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "SPAM";
+    createdAt: string;
 }
 
 interface StoreContextType {
@@ -96,13 +105,13 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 const DUMMY_PRODUCTS: Product[] = [
-    { id: "1", name: "Gabriela Cashmere Blazer", views: 14012, status: "In Stock", featured: false, category: "Jackets" },
-    { id: "2", name: "Loewe blend Jacket - Blue", views: 13212, status: "In Stock", featured: true, category: "Jackets" },
-    { id: "3", name: "Sandro - Jacket - Black", views: 8201, status: "In Stock", featured: false, category: "Jackets" },
-    { id: "4", name: "Adidas By Stella McCartney", views: 1002, status: "In Stock", featured: false, category: "Jackets" },
-    { id: "5", name: "Meteo Hooded Wool Jacket", views: 807, status: "In Stock", featured: true, category: "Jackets" },
-    { id: "6", name: "Hida Down Ski Jacket - Red", views: 406, status: "In Stock", featured: false, category: "Jackets" },
-    { id: "7", name: "Dolce & Gabbana", views: 204, status: "In Stock", featured: false, category: "Jackets" },
+    { id: "1", name: "Gabriela Cashmere Blazer", views: 14012, status: "IN_STOCK", featured: false, category: "Jackets" },
+    { id: "2", name: "Loewe blend Jacket - Blue", views: 13212, status: "IN_STOCK", featured: true, category: "Jackets" },
+    { id: "3", name: "Sandro - Jacket - Black", views: 8201, status: "IN_STOCK", featured: false, category: "Jackets" },
+    { id: "4", name: "Adidas By Stella McCartney", views: 1002, status: "IN_STOCK", featured: false, category: "Jackets" },
+    { id: "5", name: "Meteo Hooded Wool Jacket", views: 807, status: "IN_STOCK", featured: true, category: "Jackets" },
+    { id: "6", name: "Hida Down Ski Jacket - Red", views: 406, status: "IN_STOCK", featured: false, category: "Jackets" },
+    { id: "7", name: "Dolce & Gabbana", views: 204, status: "IN_STOCK", featured: false, category: "Jackets" },
 ];
 
 const DUMMY_CATEGORIES: Category[] = [
@@ -115,7 +124,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const [products, setProductsState] = useState<Product[]>(DUMMY_PRODUCTS);
     const [categories, setCategoriesState] = useState<Category[]>(DUMMY_CATEGORIES);
     const [aboutUs, setAboutUs] = useState<AboutUs[]>(DUMMY_ABOUT_US);
-    const [contactUs, setContactUs] = useState<ContactUs[]>(DUMMY_CONTACT_US as ContactUs[]);
+    const [contactUs, setContactUs] = useState<ContactUs[]>(DUMMY_CONTACT_US as unknown as ContactUs[]);
 
     const setProducts = useCallback((newProducts: Product[]) => {
         setProductsState(newProducts);
