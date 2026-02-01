@@ -17,7 +17,7 @@ export function ContactUsForm({ initialData, onClose }: ContactUsFormProps) {
         email: "",
         phone: "",
         message: "",
-        status: "pending" as "pending" | "responded" | "archived",
+        status: "PENDING" as ContactUs["status"],
     });
 
     useEffect(() => {
@@ -27,7 +27,7 @@ export function ContactUsForm({ initialData, onClose }: ContactUsFormProps) {
                 email: initialData.email,
                 phone: initialData.phone || "",
                 message: initialData.message,
-                status: initialData.status || "pending",
+                status: initialData.status || "PENDING",
             });
         }
     }, [initialData]);
@@ -82,11 +82,13 @@ export function ContactUsForm({ initialData, onClose }: ContactUsFormProps) {
                 <select
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                     value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as "pending" | "responded" | "archived" })}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as ContactUs["status"] })}
                 >
-                    <option value="pending">Pending</option>
-                    <option value="responded">Responded</option>
-                    <option value="archived">Archived</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="RESOLVED">Resolved</option>
+                    <option value="CLOSED">Closed</option>
+                    <option value="SPAM">Spam</option>
                 </select>
             </div>
 

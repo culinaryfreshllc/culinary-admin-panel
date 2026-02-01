@@ -73,6 +73,7 @@ export interface ContactUs {
     id: string;
     name: string;
     email: string;
+    phone?: string;
     subject?: string;
     message: string;
     status: "PENDING" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "SPAM";
